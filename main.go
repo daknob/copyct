@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
@@ -18,6 +19,7 @@ const (
 func main() {
 	logURL := flag.String("l", "tuscolo2026h2.sunlight.geomys.org", "CT Log URL")
 	outName := flag.String("o", "roots.pem", "Output PEM file")
+	validateRoots := flag.String("c", "warn", "Validate Root CAs: (no|warn|fail)")
 	flag.Parse()
 
 	rsp, err := http.Get("https://" + path.Join(*logURL, CTV1GetRootsEndpoint))
@@ -45,6 +47,17 @@ func main() {
 		der, err := base64.StdEncoding.DecodeString(root)
 		if err != nil {
 			log.Fatalf("failed to decode certificate in position index %d: %v", i, err)
+		}
+
+		if *validateRoots != "no" {
+			_, err = x509.ParseCertificate(der)
+			if err != nil {
+				if *validateRoots == "fail" {
+					log.Fatalf("failed to parse X.509 certificate from CT log in position index %d: %v", i, err)
+				} else if *validateRoots == "warn" {
+					log.Printf("Invalid X.509 Certificate Index #%d: %v", i, err)
+				}
+			}
 		}
 
 		err = pem.Encode(outFile, &pem.Block{Type: "CERTIFICATE", Bytes: der})
