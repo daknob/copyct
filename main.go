@@ -16,7 +16,7 @@ const (
 )
 
 func main() {
-	logURL := flag.String("l", "tuscolo2025h2.sunlight.geomys.org", "CT Log URL")
+	logURL := flag.String("l", "tuscolo2026h2.sunlight.geomys.org", "CT Log URL")
 	outName := flag.String("o", "roots.pem", "Output PEM file")
 	flag.Parse()
 
